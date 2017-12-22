@@ -13,6 +13,7 @@ fn main() {
 	";
 
 	let tokens = lexer::lex(source);
+	let ast = parser::parse_program(&tokens);
 
-	println!("{:?}", tokens);
+	println!("{:?}\n{:?}", tokens, ast);
 }
