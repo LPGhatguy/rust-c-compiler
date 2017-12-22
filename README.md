@@ -1,5 +1,5 @@
 # Rust C Compiler
-During my winter vacation, I decided to start following along with [Nora Sandler's *Writing a C Compiler*](https://norasandler.com/2017/11/29/Write-a-Compiler.html).
+During my winter vacation, I decided to start following along with [Nora Sandler's *Writing a C Compiler*](https://norasandler.com/2017/11/29/Write-a-Compiler.html). This repository is complete up to the first post.
 
 I've been interested in compilers for a long time, but besides making small esolangs and partial parsers for existing scripting languages, I've never sat down to build a compiler for a real language end-to-end.
 
