@@ -17,9 +17,11 @@ fn main() {
 
     let ast = parser::parse_program(&tokens).expect("Could not parse program!");
 
-    let asm = codegen::generate(&ast);
+    let asm = codegen::generate_program(&ast);
 
-    println!("{:?}\n", tokens);
-    println!("{:?}\n", ast);
-    println!("{:?}\n", asm);
+    eprintln!("Tokens:\n{:?}\n", tokens);
+    eprintln!("AST:\n{:?}\n", ast);
+    eprintln!("ASM:\n{}\n", asm);
+
+    println!("{}\n", asm);
 }
