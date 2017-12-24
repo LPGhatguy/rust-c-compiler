@@ -1,5 +1,7 @@
 use lexer::Token;
 
+type TokenStream<'a> = &'a [Token<'a>];
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct AstProgram<'a> {
     pub function: AstFunction<'a>,
@@ -16,17 +18,20 @@ pub enum AstExpression {
     Constant {
         value: u64,
     },
+
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AstStatement {
-    Return { expression: AstExpression },
+    Return {
+        expression: AstExpression
+    },
 }
 
 fn simple_eat<'a>(
-    tokens: &'a [Token<'a>],
+    tokens: TokenStream<'a>,
     eat_token: Token<'a>,
-) -> Option<(&'a [Token<'a>], &'a Token<'a>)> {
+) -> Option<(TokenStream<'a>, &'a Token<'a>)> {
     match tokens.first() {
         Some(token) => {
             if *token == eat_token {
@@ -39,14 +44,14 @@ fn simple_eat<'a>(
     }
 }
 
-pub fn parse_program<'a>(tokens: &'a [Token<'a>]) -> Option<AstProgram<'a>> {
+pub fn parse_program<'a>(tokens: TokenStream<'a>) -> Option<AstProgram<'a>> {
     match parse_function(tokens) {
         Some((_, function)) => Some(AstProgram { function }),
         None => None,
     }
 }
 
-fn parse_function<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], AstFunction<'a>)> {
+fn parse_function<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstFunction<'a>)> {
     let (tokens, _) = simple_eat(tokens, Token::Keyword("int"))?;
 
     let (tokens, name) = match tokens.first()? {
@@ -65,7 +70,7 @@ fn parse_function<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], AstFu
     Some((tokens, AstFunction { name, statement }))
 }
 
-fn parse_statement<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], AstStatement)> {
+fn parse_statement<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstStatement)> {
     let (tokens, _) = simple_eat(tokens, Token::Keyword("return"))?;
 
     let (tokens, expression) = parse_expression(tokens)?;
@@ -75,7 +80,7 @@ fn parse_statement<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], AstS
     Some((tokens, AstStatement::Return { expression }))
 }
 
-fn parse_expression<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], AstExpression)> {
+fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (tokens, value) = match tokens.first()? {
         &Token::IntegerLiteral(value) => (&tokens[1..], value),
         _ => return None,
