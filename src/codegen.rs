@@ -1,17 +1,17 @@
 use std::fmt::Write;
 
-use parser::{AstProgram, AstFunction, AstExpression, AstStatement};
+use parser::{AstProgram, AstFunction, AstStatement};
 
 fn generate_statement(statement: &AstStatement, output: &mut String) {
 	match statement {
 		&AstStatement::Return { ref expression } => {
-			write!(output, "movl ${}, %eax\nret", expression.value);
+			write!(output, "movl ${}, %eax\nret", expression.value).unwrap();
 		},
 	}
 }
 
 fn generate_function(function: &AstFunction, output: &mut String) {
-	write!(output, ".globl {}\n{}:\n", function.name, function.name);
+	write!(output, ".globl {}\n{}:\n", function.name, function.name).unwrap();
 	generate_statement(&function.statement, output);
 }
 
