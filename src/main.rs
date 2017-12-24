@@ -9,7 +9,7 @@ mod codegen;
 fn main() {
     let source = r"
 		int main() {
-			return !0;
+			return ~-!~!3;
 		}
 	";
 

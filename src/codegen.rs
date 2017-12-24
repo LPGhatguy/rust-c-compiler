@@ -22,7 +22,7 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
 				},
 				UnaryOperator::BitwiseComplement { ref expression } => {
 					generate_expression(expression, output);
-					write!(output, "not %eac\n").unwrap();
+					write!(output, "not %eax\n").unwrap();
 				},
 				UnaryOperator::LogicalNegation { ref expression } => {
 					generate_expression(expression, output);
