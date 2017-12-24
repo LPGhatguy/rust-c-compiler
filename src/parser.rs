@@ -1,10 +1,10 @@
-/*
-    Expression grammar:
-
-    <exp> ::= <term> { ("+" | "-") <term> }
-    <term> ::= <factor> { ("*" | "/") <factor> }
-    <factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int>
-*/
+/// Hand-written recurisive-descent parser
+///
+/// I'm not satisfied with its cleanliness -- I'll probably either refactor it
+/// until the end of time or just rewrite it as a different kind of parser.
+///
+/// The AST representation is kind of awkward, with boxing happening at the
+/// operator level, and lots of repetition.
 
 use lexer::Token;
 
@@ -74,6 +74,8 @@ pub enum AstStatement {
     },
 }
 
+/// Tries to consume a token by equality, yielding that token and the rest of
+/// the token stream.
 fn simple_eat<'a>(
     tokens: TokenStream<'a>,
     eat_token: Token<'a>,
@@ -90,6 +92,7 @@ fn simple_eat<'a>(
     }
 }
 
+/// <program> ::= <function>
 pub fn parse_program<'a>(tokens: TokenStream<'a>) -> Option<AstProgram<'a>> {
     match parse_function(tokens) {
         Some((_, function)) => Some(AstProgram { function }),
@@ -97,6 +100,7 @@ pub fn parse_program<'a>(tokens: TokenStream<'a>) -> Option<AstProgram<'a>> {
     }
 }
 
+/// <function> ::= "int" <identifier> "(" ")" "{" <statement> "}"
 fn parse_function<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstFunction<'a>)> {
     let (tokens, _) = simple_eat(tokens, Token::Keyword("int"))?;
 
@@ -116,6 +120,7 @@ fn parse_function<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstFu
     Some((tokens, AstFunction { name, statement }))
 }
 
+/// <statement> ::= "return" <expression> ";"
 fn parse_statement<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstStatement)> {
     let (tokens, _) = simple_eat(tokens, Token::Keyword("return"))?;
 
@@ -126,6 +131,7 @@ fn parse_statement<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstS
     Some((tokens, AstStatement::Return { expression }))
 }
 
+/// <constant> (terminal)
 fn parse_constant<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (tokens, value) = match tokens.first()? {
         &Token::IntegerLiteral(value) => (&tokens[1..], value),
@@ -135,7 +141,8 @@ fn parse_constant<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstEx
     Some((tokens, AstExpression::Constant { value }))
 }
 
-fn parse_unary_operator<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
+/// <unary_expression> ::= ("~" | "!" | "-") <factor>
+fn parse_unary_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (tokens, operator) = match tokens.first()? {
         &Token::Operator(operator) => (&tokens[1..], operator),
         _ => return None,
@@ -155,6 +162,7 @@ fn parse_unary_operator<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>,
     }))
 }
 
+/// <paren_expression> ::= "(" <expression> ")"
 fn parse_paren_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (tokens, _) = simple_eat(tokens, Token::OpenParen)?;
     let (tokens, expression) = parse_expression(tokens)?;
@@ -163,12 +171,14 @@ fn parse_paren_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a
     Some((tokens, expression))
 }
 
+/// <factor> ::= <paren_expression> | <unary_expression> | <constant>
 fn parse_factor<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     parse_paren_expression(tokens)
-        .or_else(|| parse_unary_operator(tokens))
+        .or_else(|| parse_unary_expression(tokens))
         .or_else(|| parse_constant(tokens))
 }
 
+/// <term> ::= <factor> { ("*" | "/") <factor> }
 fn parse_term<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (mut tokens, mut factor) = parse_factor(tokens)?;
 
@@ -219,6 +229,7 @@ fn parse_term<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpres
     Some((tokens, factor))
 }
 
+/// <expression> ::= <term> { ("+" | "-") <term> }
 fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (mut tokens, mut term) = parse_term(tokens)?;
 

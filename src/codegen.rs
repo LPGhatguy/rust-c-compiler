@@ -1,3 +1,5 @@
+/// Generates x86 assembly from the AST
+
 use std::fmt::Write;
 use std::ops::Deref;
 
@@ -10,6 +12,7 @@ use parser::{
     UnaryOperator,
 };
 
+/// Generates an expression; everything outputs to %eax for simplicity.
 fn generate_expression(expression: &AstExpression, output: &mut String) {
     match *expression {
         AstExpression::Constant { value } => {
@@ -83,7 +86,8 @@ fn generate_statement(statement: &AstStatement, output: &mut String) {
 }
 
 fn generate_function(function: &AstFunction, output: &mut String) {
-    writeln!(output, ".globl {}\n{}:", function.name, function.name).unwrap();
+    writeln!(output, ".globl {}", function.name).unwrap();
+    writeln!(output, "{}:", function.name).unwrap();
     generate_statement(&function.statement, output);
 }
 

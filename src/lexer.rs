@@ -1,3 +1,5 @@
+/// A pretty straightforward lexer/tokenizer.
+
 use regex::Regex;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -28,11 +30,9 @@ lazy_static! {
     static ref PATTERN_SEMICOLON: Regex = Regex::new(r"^;").unwrap();
 }
 
-fn try_advance<'a, F>(
-    source: &'a str,
-    pattern: &Regex,
-    tokenizer: F,
-) -> Option<(&'a str, Token<'a>)>
+/// Tries to matches the given pattern against the string slice.
+/// If it does, the 'tokenizer' fn is invokved to turn the result into a token.
+fn try_advance<'a, F>(source: &'a str, pattern: &Regex, tokenizer: F) -> Option<(&'a str, Token<'a>)>
 where
     F: Fn(&'a str) -> Token<'a>,
 {
@@ -49,13 +49,14 @@ fn test_try_advance() {
     let pattern = Regex::new(r"^\w+").unwrap();
     let source = "hello world foo";
 
-    let (rest, token) =
-        try_advance(source, pattern, |s| Token::Keyword(s)).expect("Unable to advance pattern!");
+    let (rest, token) = try_advance(source, pattern, |s| Token::Keyword(s)).expect("Unable to advance pattern!");
 
     assert_eq!(rest, " world foo");
     assert_eq!(token, Token::Keyword("hello"));
 }
 
+/// Transforms source into a list of tokens
+// TODO: Error on unknown symbols before EOF!
 pub fn lex<'a>(source: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
     let mut current = source;
