@@ -20,7 +20,16 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
 					generate_expression(expression, output);
 					write!(output, "neg %eax\n").unwrap();
 				},
-				_ => {},
+				UnaryOperator::BitwiseComplement { ref expression } => {
+					generate_expression(expression, output);
+					write!(output, "not %eac\n").unwrap();
+				},
+				UnaryOperator::LogicalNegation { ref expression } => {
+					generate_expression(expression, output);
+					write!(output, "cmpl $0, %eax\n").unwrap();
+					write!(output, "movl $0, %eax\n").unwrap();
+					write!(output, "sete %al\n").unwrap();
+				},
 			}
 		},
 	}
