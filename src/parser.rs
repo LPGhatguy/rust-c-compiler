@@ -95,11 +95,45 @@ fn parse_statement<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstS
     Some((tokens, AstStatement::Return { expression }))
 }
 
-fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
+fn parse_constant<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
     let (tokens, value) = match tokens.first()? {
         &Token::IntegerLiteral(value) => (&tokens[1..], value),
         _ => return None,
     };
 
     Some((tokens, AstExpression::Constant { value }))
+}
+
+fn parse_unary_operator<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, UnaryOperator)> {
+    let (tokens, operator) = match tokens.first()? {
+        &Token::UnaryOperator(operator) => (&tokens[1..], operator),
+        _ => return None,
+    };
+
+    let (tokens, expression) = parse_expression(tokens)?;
+
+    let node = match operator {
+        "~" => UnaryOperator::BitwiseComplement { expression },
+        "!" => UnaryOperator::LogicalNegation { expression },
+        "-" => UnaryOperator::Negation { expression },
+        _ => unimplemented!(),
+    };
+
+    Some((tokens, node))
+}
+
+fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpression)> {
+    match parse_constant(tokens) {
+        Some(result) => return Some(result),
+        None => {},
+    }
+
+    match parse_unary_operator(tokens) {
+        Some((tokens, operator)) => return Some((tokens, AstExpression::UnaryOperator {
+            operator: Box::new(operator),
+        })),
+        None => {},
+    }
+
+    None
 }
