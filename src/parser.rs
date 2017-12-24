@@ -106,7 +106,7 @@ fn parse_constant<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstEx
 
 fn parse_unary_operator<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, UnaryOperator)> {
     let (tokens, operator) = match tokens.first()? {
-        &Token::UnaryOperator(operator) => (&tokens[1..], operator),
+        &Token::Operator(operator) => (&tokens[1..], operator),
         _ => return None,
     };
 

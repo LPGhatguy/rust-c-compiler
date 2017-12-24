@@ -5,7 +5,7 @@ pub enum Token<'a> {
     Whitespace(&'a str),
     Keyword(&'a str),
     Identifier(&'a str),
-    UnaryOperator(&'a str),
+    Operator(&'a str),
     IntegerLiteral(u64),
     OpenBrace,
     CloseBrace,
@@ -19,7 +19,7 @@ lazy_static! {
     static ref PATTERN_KEYWORD: Regex = Regex::new(r"^(int|return)").unwrap();
     static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"^[a-zA-Z]\w*").unwrap();
     static ref PATTERN_INTEGER_LITERAL: Regex = Regex::new(r"^[0-9]+").unwrap();
-    static ref PATTERN_UNARY_OPERATOR: Regex = Regex::new(r"^(~|-|!)").unwrap();
+    static ref PATTERN_OPERATOR: Regex = Regex::new(r"^(~|!|-|\+|/|\*)").unwrap();
 
     static ref PATTERN_OPEN_BRACE: Regex = Regex::new(r"^\{").unwrap();
     static ref PATTERN_CLOSE_BRACE: Regex = Regex::new(r"^\}").unwrap();
@@ -64,7 +64,7 @@ pub fn lex<'a>(source: &'a str) -> Vec<Token<'a>> {
         let result = try_advance(current, &PATTERN_WHITESPACE, |s| Token::Whitespace(s))
             .or_else(|| try_advance(current, &PATTERN_KEYWORD, |s| Token::Keyword(s)))
             .or_else(|| try_advance(current, &PATTERN_IDENTIFIER, |s| Token::Identifier(s)))
-            .or_else(|| try_advance(current, &PATTERN_UNARY_OPERATOR, |s| Token::UnaryOperator(s)))
+            .or_else(|| try_advance(current, &PATTERN_OPERATOR, |s| Token::Operator(s)))
             .or_else(|| try_advance(current, &PATTERN_INTEGER_LITERAL, |s| {
                 Token::IntegerLiteral(s.parse().unwrap())
             }))
