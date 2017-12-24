@@ -13,23 +13,23 @@ use parser::{
 fn generate_expression(expression: &AstExpression, output: &mut String) {
     match *expression {
         AstExpression::Constant { value } => {
-            write!(output, "movl ${}, %eax\n", value).unwrap();
+            writeln!(output, "movl ${}, %eax", value).unwrap();
         },
         AstExpression::UnaryOperator { ref operator } => {
             match *operator.deref() {
                 UnaryOperator::Negation { ref expression } => {
                     generate_expression(expression, output);
-                    write!(output, "neg %eax\n").unwrap();
+                    writeln!(output, "neg %eax").unwrap();
                 },
                 UnaryOperator::BitwiseComplement { ref expression } => {
                     generate_expression(expression, output);
-                    write!(output, "not %eax\n").unwrap();
+                    writeln!(output, "not %eax").unwrap();
                 },
                 UnaryOperator::LogicalNegation { ref expression } => {
                     generate_expression(expression, output);
-                    write!(output, "cmpl $0, %eax\n").unwrap();
-                    write!(output, "movl $0, %eax\n").unwrap();
-                    write!(output, "sete %al\n").unwrap();
+                    writeln!(output, "cmpl $0, %eax").unwrap();
+                    writeln!(output, "movl $0, %eax").unwrap();
+                    writeln!(output, "sete %al").unwrap();
                 },
             }
         },
@@ -37,17 +37,25 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
             match *operator.deref() {
                 BinaryOperator::Addition { ref a, ref b } => {
                     generate_expression(a, output);
-                    write!(output, "push %eax\n").unwrap();
+                    writeln!(output, "push %eax").unwrap();
                     generate_expression(b, output);
-                    write!(output, "pop %ecx\n").unwrap();
-                    write!(output, "addl %ecx, %eax\n").unwrap();
+                    writeln!(output, "pop %ecx").unwrap();
+                    writeln!(output, "addl %ecx, %eax").unwrap();
                 },
                 BinaryOperator::Multiplication { ref a, ref b } => {
                     generate_expression(a, output);
-                    write!(output, "push %eax\n").unwrap();
+                    writeln!(output, "push %eax").unwrap();
                     generate_expression(b, output);
-                    write!(output, "pop %ecx\n").unwrap();
-                    write!(output, "imul %ecx, %eax\n").unwrap();
+                    writeln!(output, "pop %ecx").unwrap();
+                    writeln!(output, "imul %ecx, %eax").unwrap();
+                },
+                BinaryOperator::Subtraction { ref a, ref b } => {
+                    generate_expression(a, output);
+                    writeln!(output, "push %eax").unwrap();
+                    generate_expression(b, output);
+                    writeln!(output, "movl %eax, %ecx").unwrap();
+                    writeln!(output, "pop %eax").unwrap();
+                    writeln!(output, "subl %ecx, %eax").unwrap();
                 },
                 _ => unimplemented!(),
             }
@@ -59,13 +67,13 @@ fn generate_statement(statement: &AstStatement, output: &mut String) {
     match *statement {
         AstStatement::Return { ref expression } => {
             generate_expression(expression, output);
-            write!(output, "ret\n").unwrap();
+            writeln!(output, "ret").unwrap();
         },
     }
 }
 
 fn generate_function(function: &AstFunction, output: &mut String) {
-    write!(output, ".globl {}\n{}:\n", function.name, function.name).unwrap();
+    writeln!(output, ".globl {}\n{}:", function.name, function.name).unwrap();
     generate_statement(&function.statement, output);
 }
 
