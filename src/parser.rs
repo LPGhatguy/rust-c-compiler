@@ -176,7 +176,7 @@ fn parse_term<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpres
         let operator = match tokens.first() {
             Some(operator) => {
                 match operator {
-                    &Token::Operator(_) => {
+                    &Token::Operator("*") | &Token::Operator("/") => {
                         tokens = &tokens[1..];
                         operator
                     },
@@ -187,7 +187,7 @@ fn parse_term<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpres
         };
 
         match operator {
-            &Token::Operator("*") => {
+            &Token::Operator(operator_kind) => {
                 let second_factor = match parse_factor(tokens) {
                     Some((next_tokens, second_factor)) => {
                         tokens = next_tokens;
@@ -196,27 +196,20 @@ fn parse_term<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, AstExpres
                     None => return None,
                 };
 
-                factor = AstExpression::BinaryOperator {
-                    operator: Box::new(BinaryOperator::Multiplication {
+                let inner = match operator_kind {
+                    "*" => BinaryOperator::Multiplication {
                         a: factor,
                         b: second_factor,
-                    }),
-                };
-            },
-            &Token::Operator("/") => {
-                let second_factor = match parse_factor(tokens) {
-                    Some((next_tokens, second_factor)) => {
-                        tokens = next_tokens;
-                        second_factor
                     },
-                    None => return None,
+                    "/" => BinaryOperator::Division {
+                        a: factor,
+                        b: second_factor,
+                    },
+                    _ => break,
                 };
 
                 factor = AstExpression::BinaryOperator {
-                    operator: Box::new(BinaryOperator::Division {
-                        a: factor,
-                        b: second_factor,
-                    }),
+                    operator: Box::new(inner),
                 };
             },
             _ => break,
@@ -233,7 +226,7 @@ fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, Ast
         let operator = match tokens.first() {
             Some(operator) => {
                 match operator {
-                    &Token::Operator(_) => {
+                    &Token::Operator("+") | &Token::Operator("-") => {
                         tokens = &tokens[1..];
                         operator
                     },
@@ -244,7 +237,7 @@ fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, Ast
         };
 
         match operator {
-            &Token::Operator("+") => {
+            &Token::Operator(operator_kind) => {
                 let second_term = match parse_term(tokens) {
                     Some((next_tokens, second_term)) => {
                         tokens = next_tokens;
@@ -253,27 +246,20 @@ fn parse_expression<'a>(tokens: TokenStream<'a>) -> Option<(TokenStream<'a>, Ast
                     None => return None,
                 };
 
-                term = AstExpression::BinaryOperator {
-                    operator: Box::new(BinaryOperator::Addition {
+                let inner = match operator_kind {
+                    "+" => BinaryOperator::Addition {
                         a: term,
                         b: second_term,
-                    }),
-                };
-            },
-            &Token::Operator("-") => {
-                let second_term = match parse_term(tokens) {
-                    Some((next_tokens, second_term)) => {
-                        tokens = next_tokens;
-                        second_term
                     },
-                    None => return None,
+                    "-" => BinaryOperator::Subtraction {
+                        a: term,
+                        b: second_term,
+                    },
+                    _ => break,
                 };
 
                 term = AstExpression::BinaryOperator {
-                    operator: Box::new(BinaryOperator::Subtraction {
-                        a: term,
-                        b: second_term,
-                    }),
+                    operator: Box::new(inner),
                 };
             },
             _ => break,
