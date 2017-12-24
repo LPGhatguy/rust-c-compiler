@@ -1,11 +1,15 @@
 use std::fmt::Write;
 
-use parser::{AstProgram, AstFunction, AstStatement};
+use parser::{AstProgram, AstFunction, AstExpression, AstStatement};
 
 fn generate_statement(statement: &AstStatement, output: &mut String) {
 	match statement {
 		&AstStatement::Return { ref expression } => {
-			write!(output, "movl ${}, %eax\nret", expression.value).unwrap();
+			match expression {
+				&AstExpression::Constant { value } => {
+					write!(output, "movl ${}, %eax\nret", value).unwrap();
+				}
+			}
 		},
 	}
 }

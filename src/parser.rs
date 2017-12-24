@@ -12,8 +12,10 @@ pub struct AstFunction<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct AstExpression {
-    pub value: u64,
+pub enum AstExpression {
+    Constant {
+        value: u64,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -79,5 +81,5 @@ fn parse_expression<'a>(tokens: &'a [Token<'a>]) -> Option<(&'a [Token<'a>], Ast
         _ => return None,
     };
 
-    Some((tokens, AstExpression { value }))
+    Some((tokens, AstExpression::Constant { value }))
 }
