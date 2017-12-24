@@ -32,6 +32,7 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
 				},
 			}
 		},
+		_ => unimplemented!(),
 	}
 }
 
