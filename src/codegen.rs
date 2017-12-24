@@ -1,19 +1,34 @@
 use std::fmt::Write;
+use std::ops::Deref;
 
-use parser::{AstProgram, AstFunction, AstExpression, AstStatement};
+use parser::{
+	AstExpression,
+	AstFunction,
+	AstProgram,
+	AstStatement,
+	UnaryOperator,
+};
 
 fn generate_expression(expression: &AstExpression, output: &mut String) {
-	match expression {
-		&AstExpression::Constant { value } => {
+	match *expression {
+		AstExpression::Constant { value } => {
 			write!(output, "movl ${}, %eax\n", value).unwrap();
 		},
-		&AstExpression::UnaryOperator { .. } => {},
+		AstExpression::UnaryOperator { ref operator } => {
+			match *operator.deref() {
+				UnaryOperator::Negation { ref expression } => {
+					generate_expression(expression, output);
+					write!(output, "neg %eax\n").unwrap();
+				},
+				_ => {},
+			}
+		},
 	}
 }
 
 fn generate_statement(statement: &AstStatement, output: &mut String) {
-	match statement {
-		&AstStatement::Return { ref expression } => {
+	match *statement {
+		AstStatement::Return { ref expression } => {
 			generate_expression(expression, output);
 			write!(output, "ret\n").unwrap();
 		},
