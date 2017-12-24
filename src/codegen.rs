@@ -8,7 +8,8 @@ fn generate_statement(statement: &AstStatement, output: &mut String) {
 			match expression {
 				&AstExpression::Constant { value } => {
 					write!(output, "movl ${}, %eax\nret", value).unwrap();
-				}
+				},
+				&AstExpression::UnaryOperator { .. } => {},
 			}
 		},
 	}

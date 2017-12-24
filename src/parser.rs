@@ -14,11 +14,26 @@ pub struct AstFunction<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum UnaryOperator {
+    Negation {
+        expression: AstExpression,
+    },
+    BitwiseComplement {
+        expression: AstExpression,
+    },
+    LogicalNegation {
+        expression: AstExpression,
+    },
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum AstExpression {
     Constant {
         value: u64,
     },
-
+    UnaryOperator {
+        operator: Box<UnaryOperator>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
