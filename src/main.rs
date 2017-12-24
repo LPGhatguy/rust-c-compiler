@@ -9,7 +9,7 @@ mod codegen;
 fn main() {
     let source = r"
         int main() {
-            return 3 * (5 - 3);
+            return 3 * (6 / 2);
         }
     ";
 

@@ -57,7 +57,17 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
                     writeln!(output, "pop %eax").unwrap();
                     writeln!(output, "subl %ecx, %eax").unwrap();
                 },
-                _ => unimplemented!(),
+                BinaryOperator::Division { ref a, ref b } => {
+                    // idivl x is:
+                    // idivl [EDX:EAX] / x, stored in [EDX:EAX]
+                    generate_expression(a, output);
+                    writeln!(output, "push %eax").unwrap();
+                    generate_expression(b, output);
+                    writeln!(output, "movl %eax, %ecx").unwrap();
+                    writeln!(output, "movl $0, %edx").unwrap();
+                    writeln!(output, "pop %eax").unwrap();
+                    writeln!(output, "idivl %ecx").unwrap();
+                },
             }
         },
     }
