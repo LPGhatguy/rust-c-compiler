@@ -4,13 +4,32 @@ use regex::Regex;
 pub enum Token<'a> {
     Whitespace(&'a str),
     Keyword(&'a str),
+    Identifier(&'a str),
+    IntegerLiteral(u64),
     OpenBrace,
     CloseBrace,
     OpenParen,
     CloseParen,
     Semicolon,
-    Identifier(&'a str),
-    IntegerLiteral(u64),
+    Negation, // -
+    BitwiseComplement, // ~
+    LogicalNegation, // !
+}
+
+lazy_static! {
+    static ref PATTERN_WHITESPACE: Regex = Regex::new(r"^\s+").unwrap();
+    static ref PATTERN_KEYWORD: Regex = Regex::new(r"^(int|return)").unwrap();
+    static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"^[a-zA-Z]\w*").unwrap();
+    static ref PATTERN_INTEGER_LITERAL: Regex = Regex::new(r"^[0-9]+").unwrap();
+
+    static ref PATTERN_OPEN_BRACE: Regex = Regex::new(r"^\{").unwrap();
+    static ref PATTERN_CLOSE_BRACE: Regex = Regex::new(r"^\}").unwrap();
+    static ref PATTERN_OPEN_PAREN: Regex = Regex::new(r"^\(").unwrap();
+    static ref PATTERN_CLOSE_PAREN: Regex = Regex::new(r"^\)").unwrap();
+    static ref PATTERN_SEMICOLON: Regex = Regex::new(r"^;").unwrap();
+    static ref PATTERN_NEGATION: Regex = Regex::new(r"^-").unwrap();
+    static ref PATTERN_BITWISE_COMPLEMENT: Regex = Regex::new(r"^~").unwrap();
+    static ref PATTERN_LOGICAL_NEGATION: Regex = Regex::new(r"^!").unwrap();
 }
 
 fn try_advance<'a, F>(
@@ -42,49 +61,24 @@ fn test_try_advance() {
 }
 
 pub fn lex<'a>(source: &'a str) -> Vec<Token<'a>> {
-    lazy_static! {
-		static ref PATTERN_WHITESPACE: Regex = Regex::new(r"^\s+").unwrap();
-		static ref PATTERN_KEYWORD: Regex = Regex::new(r"^(int|return)").unwrap();
-		static ref PATTERN_OPEN_BRACE: Regex = Regex::new(r"^\{").unwrap();
-		static ref PATTERN_CLOSE_BRACE: Regex = Regex::new(r"^\}").unwrap();
-		static ref PATTERN_OPEN_PAREN: Regex = Regex::new(r"^\(").unwrap();
-		static ref PATTERN_CLOSE_PAREN: Regex = Regex::new(r"^\)").unwrap();
-		static ref PATTERN_SEMICOLON: Regex = Regex::new(r"^;").unwrap();
-		static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"^[a-zA-Z]\w*").unwrap();
-		static ref PATTERN_INTEGER_LITERAL: Regex = Regex::new(r"^[0-9]+").unwrap();
-	}
-
     let mut tokens = Vec::new();
     let mut current = source;
 
     loop {
         let result = try_advance(current, &PATTERN_WHITESPACE, |s| Token::Whitespace(s))
-            .or_else(|| {
-                try_advance(current, &PATTERN_KEYWORD, |s| Token::Keyword(s))
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_OPEN_BRACE, |_| Token::OpenBrace)
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_CLOSE_BRACE, |_| Token::CloseBrace)
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_OPEN_PAREN, |_| Token::OpenParen)
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_CLOSE_PAREN, |_| Token::CloseParen)
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_SEMICOLON, |_| Token::Semicolon)
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_IDENTIFIER, |s| Token::Identifier(s))
-            })
-            .or_else(|| {
-                try_advance(current, &PATTERN_INTEGER_LITERAL, |s| {
-                    Token::IntegerLiteral(s.parse().unwrap())
-                })
-            });
+            .or_else(|| try_advance(current, &PATTERN_KEYWORD, |s| Token::Keyword(s)))
+            .or_else(|| try_advance(current, &PATTERN_IDENTIFIER, |s| Token::Identifier(s)))
+            .or_else(|| try_advance(current, &PATTERN_INTEGER_LITERAL, |s| {
+                Token::IntegerLiteral(s.parse().unwrap())
+            }))
+            .or_else(|| try_advance(current, &PATTERN_OPEN_BRACE, |_| Token::OpenBrace))
+            .or_else(|| try_advance(current, &PATTERN_CLOSE_BRACE, |_| Token::CloseBrace))
+            .or_else(|| try_advance(current, &PATTERN_OPEN_PAREN, |_| Token::OpenParen))
+            .or_else(|| try_advance(current, &PATTERN_CLOSE_PAREN, |_| Token::CloseParen))
+            .or_else(|| try_advance(current, &PATTERN_SEMICOLON, |_| Token::Semicolon))
+            .or_else(|| try_advance(current, &PATTERN_NEGATION, |_| Token::Negation))
+            .or_else(|| try_advance(current, &PATTERN_BITWISE_COMPLEMENT, |_| Token::BitwiseComplement))
+            .or_else(|| try_advance(current, &PATTERN_LOGICAL_NEGATION, |_| Token::LogicalNegation));
 
         match result {
             Some((next_current, token)) => {
