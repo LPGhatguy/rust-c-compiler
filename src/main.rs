@@ -8,10 +8,10 @@ mod codegen;
 
 fn main() {
     let source = r"
-		int main() {
-			return 3 + 5;
-		}
-	";
+        int main() {
+            return 3 + 5;
+        }
+    ";
 
     let tokens = lexer::lex(source);
 
