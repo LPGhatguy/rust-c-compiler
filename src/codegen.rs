@@ -42,6 +42,13 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
                     write!(output, "pop %ecx\n").unwrap();
                     write!(output, "addl %ecx, %eax\n").unwrap();
                 },
+                BinaryOperator::Multiplication { ref a, ref b } => {
+                    generate_expression(a, output);
+                    write!(output, "push %eax\n").unwrap();
+                    generate_expression(b, output);
+                    write!(output, "pop %ecx\n").unwrap();
+                    write!(output, "imul %ecx, %eax\n").unwrap();
+                },
                 _ => unimplemented!(),
             }
         },
