@@ -6,6 +6,7 @@ use parser::{
 	AstFunction,
 	AstProgram,
 	AstStatement,
+	BinaryOperator,
 	UnaryOperator,
 };
 
@@ -32,7 +33,18 @@ fn generate_expression(expression: &AstExpression, output: &mut String) {
 				},
 			}
 		},
-		_ => unimplemented!(),
+		AstExpression::BinaryOperator { ref operator } => {
+			match *operator.deref() {
+				BinaryOperator::Addition { ref a, ref b } => {
+					generate_expression(a, output);
+					write!(output, "push %eax\n").unwrap();
+					generate_expression(b, output);
+					write!(output, "pop %ecx\n").unwrap();
+					write!(output, "addl %ecx, %eax\n").unwrap();
+				},
+				_ => unimplemented!(),
+			}
+		},
 	}
 }
 
